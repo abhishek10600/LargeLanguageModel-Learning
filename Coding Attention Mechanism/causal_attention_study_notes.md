@@ -1,5 +1,9 @@
 # Causal Self-Attention in PyTorch — Study Notes
 
+Chat Link: https://chatgpt.com/share/6ad0c5cd-addc-83e8-8691-4f509776c7e7
+
+Code Link: https://github.com/abhishek10600/LargeLanguageModel-Learning/blob/main/Coding%20Attention%20Mechanism/causal_attention_mechanism.ipynb
+
 ## 1. What this code implements
 
 This code implements a **causal self-attention** layer. It creates Query, Key, and Value vectors from token embeddings, calculates similarity scores between tokens, masks future tokens, applies softmax to obtain attention weights, and combines Value vectors to produce context vectors.
@@ -28,7 +32,7 @@ inputs = torch.tensor([
 The shape is `(6, 3)`:
 
 - `6` = number of tokens, also called sequence length.
-- `3` = number of values in each token embedding, also called input dimension \(d_{\text{in}}\).
+- `3` = number of values in each token embedding, also called input dimension \(d\_{\text{in}}\).
 
 ```python
 d_in = inputs.shape[1]  # 3
@@ -46,7 +50,7 @@ batch = torch.stack((inputs, inputs), dim=0)
 This stacks two copies of the same sequence into a batch. Its shape is:
 
 \[
-X \in \mathbb{R}^{B \times T \times d_{\text{in}}}
+X \in \mathbb{R}^{B \times T \times d\_{\text{in}}}
 = \mathbb{R}^{2 \times 6 \times 3}
 \]
 
@@ -54,7 +58,7 @@ where:
 
 - \(B=2\): batch size
 - \(T=6\): number of tokens
-- \(d_{\text{in}}=3\): input embedding dimension
+- \(d\_{\text{in}}=3\): input embedding dimension
 
 Both batch examples are identical, so with the same model weights and dropout set to zero, their outputs are identical too.
 
@@ -123,16 +127,16 @@ For an input token vector \(x_i\):
 q_i=x_iW_Q,\qquad k_i=x_iW_K,\qquad v_i=x_iW_V
 \]
 
-PyTorch's `nn.Linear` stores weights in shape `(out_features, in_features)` and internally computes the equivalent of \(x_iW^\top\) if the mathematical weight is written as \(W\in\mathbb{R}^{d_{\text{in}}\times d_{\text{out}}}\).
+PyTorch's `nn.Linear` stores weights in shape `(out_features, in_features)` and internally computes the equivalent of \(x*iW^\top\) if the mathematical weight is written as \(W\in\mathbb{R}^{d*{\text{in}}\times d\_{\text{out}}}\).
 
 For the whole batch:
 
-| Tensor | Shape |
-|---|---|
-| `x` | `(2, 6, 3)` |
+| Tensor    | Shape       |
+| --------- | ----------- |
+| `x`       | `(2, 6, 3)` |
 | `queries` | `(2, 6, 2)` |
-| `keys` | `(2, 6, 2)` |
-| `values` | `(2, 6, 2)` |
+| `keys`    | `(2, 6, 2)` |
+| `values`  | `(2, 6, 2)` |
 
 The last dimension changes from 3 to 2 because the linear layers project each embedding into the chosen output dimension.
 
@@ -165,7 +169,7 @@ In this example:
 Every score compares one token's Query with another token's Key:
 
 \[
-s_{ij}=q_i^\top k_j
+s\_{ij}=q_i^\top k_j
 \]
 
 - \(i\) identifies the token doing the attending (the Query row).
@@ -227,7 +231,7 @@ Here ✓ means allowed and × means blocked.
 The standard scaled dot-product attention formula divides each score by the square root of the Key dimension:
 
 \[
-\widetilde{s}_{ij}=\frac{q_i^\top k_j}{\sqrt{d_k}}
+\widetilde{s}\_{ij}=\frac{q_i^\top k_j}{\sqrt{d_k}}
 \]
 
 In this implementation, `d_k = keys.shape[-1] = 2`, so the scores are divided by \(\sqrt{2}\).
@@ -256,12 +260,12 @@ The score tensor has shape `(B, query_tokens, key_tokens)`. We need to normalize
 Mathematically:
 
 \[
-a_{ij}=
-\frac{\exp(\widetilde{s}_{ij})}
-{\sum_{m=1}^{T}\exp(\widetilde{s}_{im})}
+a*{ij}=
+\frac{\exp(\widetilde{s}*{ij})}
+{\sum*{m=1}^{T}\exp(\widetilde{s}*{im})}
 \]
 
-Masked future positions have \(\widetilde{s}_{ij}=-\infty\), so their attention weights are zero.
+Masked future positions have \(\widetilde{s}\_{ij}=-\infty\), so their attention weights are zero.
 
 With `dim=1`, PyTorch instead normalizes down the query-token dimension for each key column. That is not the intended attention distribution: rows do not generally sum to one, and the result is not standard causal self-attention. Use `dim=-1`.
 
@@ -291,7 +295,7 @@ context_vectors = attention_weights @ values
 The attention weights tell us how much each allowed token contributes. The layer uses them to take a weighted sum of the Value vectors:
 
 \[
-z_i=\sum_{j=1}^{T}a_{ij}v_j
+z*i=\sum*{j=1}^{T}a\_{ij}v_j
 \]
 
 In matrix form:
@@ -334,10 +338,10 @@ For a batch, the transpose is applied to the final two dimensions of \(K\).
 
 ### Step 3: Apply the causal mask
 
-Let \(C_{ij}=0\) if \(j\le i\) and \(C_{ij}=-\infty\) if \(j>i\).
+Let \(C*{ij}=0\) if \(j\le i\) and \(C*{ij}=-\infty\) if \(j>i\).
 
 \[
-S_{\text{causal}}=S+C
+S\_{\text{causal}}=S+C
 \]
 
 This prevents each position from using future positions.
@@ -345,7 +349,7 @@ This prevents each position from using future positions.
 ### Step 4: Normalize across keys
 
 \[
-A=\operatorname{softmax}(S_{\text{causal}})
+A=\operatorname{softmax}(S\_{\text{causal}})
 \]
 
 Softmax is applied independently to each query row, across the final/key dimension.
@@ -382,17 +386,17 @@ Because both batch entries contain the same input, and the same weights are appl
 
 ## 13. Shape summary
 
-| Operation | Shape |
-|---|---|
-| Input `x` | `(2, 6, 3)` |
-| Query `Q` | `(2, 6, 2)` |
-| Key `K` | `(2, 6, 2)` |
-| Value `V` | `(2, 6, 2)` |
+| Operation                          | Shape       |
+| ---------------------------------- | ----------- |
+| Input `x`                          | `(2, 6, 3)` |
+| Query `Q`                          | `(2, 6, 2)` |
+| Key `K`                            | `(2, 6, 2)` |
+| Value `V`                          | `(2, 6, 2)` |
 | Transposed Key `K.transpose(1, 2)` | `(2, 2, 6)` |
-| Attention scores `Q @ Kᵀ` | `(2, 6, 6)` |
-| Causal mask | `(6, 6)` |
-| Attention weights `A` | `(2, 6, 6)` |
-| Context vectors `A @ V` | `(2, 6, 2)` |
+| Attention scores `Q @ Kᵀ`          | `(2, 6, 6)` |
+| Causal mask                        | `(6, 6)`    |
+| Attention weights `A`              | `(2, 6, 6)` |
+| Context vectors `A @ V`            | `(2, 6, 2)` |
 
 ## 14. Key takeaways
 
