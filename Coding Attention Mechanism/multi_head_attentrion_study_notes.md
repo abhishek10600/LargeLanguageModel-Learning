@@ -1,5 +1,9 @@
 # Understanding Multi-Head Attention — Code and Mathematics
 
+Code Link: https://github.com/abhishek10600/LargeLanguageModel-Learning/blob/main/Coding%20Attention%20Mechanism/multihead_attention_mechanism.ipynb
+
+Chat Link: https://chatgpt.com/share/6ad3b3ff-6f00-83ee-8379-ec4cad735b22
+
 These notes explain the Multi-Head Attention notebook step by step, beginning with intuition and then connecting each idea to the mathematics and PyTorch code.
 
 The notebook implements attention in two ways:
@@ -50,11 +54,11 @@ A typical input tensor has shape:
 
 Each dimension has a distinct meaning:
 
-| Dimension | Meaning | Example |
-|---|---|---:|
-| `batch_size` | Number of text sequences processed together | 8 |
-| `num_tokens` | Number of tokens in each sequence | 4 |
-| `embedding_dimension` | Number of numbers representing each token | 256 |
+| Dimension             | Meaning                                     | Example |
+| --------------------- | ------------------------------------------- | ------: |
+| `batch_size`          | Number of text sequences processed together |       8 |
+| `num_tokens`          | Number of tokens in each sequence           |       4 |
+| `embedding_dimension` | Number of numbers representing each token   |     256 |
 
 The notebook uses:
 
@@ -161,9 +165,9 @@ Suppose the token IDs are:
 
 With `max_length = 4`:
 
-| Tensor | Token IDs |
-|---|---|
-| `input_chunk` | 10, 20, 30, 40 |
+| Tensor         | Token IDs      |
+| -------------- | -------------- |
+| `input_chunk`  | 10, 20, 30, 40 |
 | `target_chunk` | 20, 30, 40, 50 |
 
 This shift trains a language model to predict the next token:
@@ -211,7 +215,7 @@ pos_embedding_layer = nn.Embedding(context_length, output_dim)
 The final input representation is the sum:
 
 \[
-X = E_{\text{token}} + E_{\text{position}}
+X = E*{\text{token}} + E*{\text{position}}
 \]
 
 For example:
@@ -413,7 +417,7 @@ attn_scores / keys.shape[-1]**0.5
 Mathematically:
 
 \[
-S_{\text{scaled}}=\frac{QK^\top}{\sqrt{d_k}}
+S\_{\text{scaled}}=\frac{QK^\top}{\sqrt{d_k}}
 \]
 
 Here, \(d_k\) is the dimension of a key vector in one head.
@@ -650,7 +654,7 @@ The output dimension is 256 and there are two heads.
 The dimension of each head is:
 
 \[
-d_{\text{head}}=\frac{d_{\text{out}}}{h}
+d*{\text{head}}=\frac{d*{\text{out}}}{h}
 \]
 
 Where \(h\) is the number of heads.
@@ -658,7 +662,7 @@ Where \(h\) is the number of heads.
 For this notebook:
 
 \[
-d_{\text{head}}=\frac{256}{2}=128
+d\_{\text{head}}=\frac{256}{2}=128
 \]
 
 The model projects each token into 256 query features, 256 key features, and 256 value features, then splits each 256-dimensional vector into two 128-dimensional heads.
@@ -1095,17 +1099,17 @@ Both implementations aim to perform the same mathematical operation. Because the
 
 ## 10. Compare the Two Implementations
 
-| Operation | From scratch | PyTorch version |
-|---|---|---|
-| Create Q, K, V | Three linear layers | One combined linear layer |
-| Split heads | `view()` | `view()` |
-| Rearrange dimensions | `transpose()` | `permute()` |
-| Calculate scores | `queries @ keys.T` | Built-in function |
-| Scale scores | Explicit division | Built-in function |
-| Apply causal mask | Explicit triangular mask | `is_causal=True` |
-| Apply softmax | Explicit `torch.softmax()` | Built-in function |
-| Combine values | Explicit matrix multiplication | Built-in function |
-| Merge heads | `transpose()` and `view()` | `transpose()` and `view()` |
+| Operation            | From scratch                   | PyTorch version            |
+| -------------------- | ------------------------------ | -------------------------- |
+| Create Q, K, V       | Three linear layers            | One combined linear layer  |
+| Split heads          | `view()`                       | `view()`                   |
+| Rearrange dimensions | `transpose()`                  | `permute()`                |
+| Calculate scores     | `queries @ keys.T`             | Built-in function          |
+| Scale scores         | Explicit division              | Built-in function          |
+| Apply causal mask    | Explicit triangular mask       | `is_causal=True`           |
+| Apply softmax        | Explicit `torch.softmax()`     | Built-in function          |
+| Combine values       | Explicit matrix multiplication | Built-in function          |
+| Merge heads          | `transpose()` and `view()`     | `transpose()` and `view()` |
 
 The from-scratch version is useful for learning because every mathematical operation is visible. The built-in version is more convenient for practical implementations.
 
@@ -1117,17 +1121,17 @@ The first version applies its manually created causal mask. The second enables c
 
 For this example:
 
-| Stage | Shape |
-|---|---|
-| Input embeddings | `(8, 4, 256)` |
+| Stage               | Shape              |
+| ------------------- | ------------------ |
+| Input embeddings    | `(8, 4, 256)`      |
 | Q, K, V projections | `(8, 4, 256)` each |
-| Split into heads | `(8, 4, 2, 128)` |
-| Transpose heads | `(8, 2, 4, 128)` |
-| Attention scores | `(8, 2, 4, 4)` |
-| Attention weights | `(8, 2, 4, 4)` |
-| Weighted values | `(8, 2, 4, 128)` |
-| Merge heads | `(8, 4, 256)` |
-| Final output | `(8, 4, 256)` |
+| Split into heads    | `(8, 4, 2, 128)`   |
+| Transpose heads     | `(8, 2, 4, 128)`   |
+| Attention scores    | `(8, 2, 4, 4)`     |
+| Attention weights   | `(8, 2, 4, 4)`     |
+| Weighted values     | `(8, 2, 4, 128)`   |
+| Merge heads         | `(8, 4, 256)`      |
+| Final output        | `(8, 4, 256)`      |
 
 ### Follow one token representation through the layer
 
@@ -1154,7 +1158,7 @@ Try answering these questions before checking the answers.
 
 A. To convert all numbers into probabilities  
 B. To learn how tokens request, match, and contribute information  
-C. To remove the embedding dimension  
+C. To remove the embedding dimension
 
 **Answer: B.** Queries are compared against keys to calculate attention weights. Those weights determine how values are combined.
 
@@ -1162,7 +1166,7 @@ C. To remove the embedding dimension
 
 A. 64  
 B. 128  
-C. 252  
+C. 252
 
 **Answer: A.** The head dimension is:
 
@@ -1174,7 +1178,7 @@ C. 252
 
 A. To make the embeddings larger  
 B. To make future tokens have zero attention weight after softmax  
-C. To remove the current token  
+C. To remove the current token
 
 **Answer: B.** Softmax assigns zero weight to negative infinity, preventing a token from using future information.
 
@@ -1182,7 +1186,7 @@ C. To remove the current token
 
 A. A weighted combination of value vectors  
 B. The vocabulary size  
-C. The number of attention heads  
+C. The number of attention heads
 
 **Answer: A.** Attention weights determine how strongly each value vector contributes to each token's output.
 
